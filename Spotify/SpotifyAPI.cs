@@ -26,58 +26,21 @@ namespace LineupAnalyzer.Spotify
 
         private bool authenticated = false;
 
-        //public SpotifyAPI
-        private static async Task<string> RequestSpotifyToken()
+        private static async Task InitializeSpotifyClient()
         {
             // Retrieve Spotify Secrets
             var appConfig = new ConfigurationBuilder()
-            .AddUserSecrets<Program>()
-            .Build();
+                .AddUserSecrets<Program>()
+                .Build();
 
-            var mySpotifyClientID = appConfig["SpotifyClientID"];
-            var mySpotifyCllientSecret = appConfig["SpotifyClientSecret"];
-
-            // Set HttpRequest Authorization Header
-            var authenticationString = $"{mySpotifyClientID}:{mySpotifyCllientSecret}";
-            var base64EncodedAuthenticationString = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(authenticationString));
-
-            client.DefaultRequestHeaders.Add("Authorization", "Basic " + base64EncodedAuthenticationString);
-
-            // Set HttpRequest Body
-            var values = new Dictionary<string, string>
-            {
-                { "grant_type", "client_credentials" }
-            };
-
-            var content = new FormUrlEncodedContent(values);
-
-            //TODO: Implement error handling!
-            // Request Spotify API Access Token
-            HttpResponseMessage response = await client.PostAsync("https://accounts.spotify.com/api/token", content);
-            response.EnsureSuccessStatusCode();
-
-            // Deserialize HttpRequest to access information
-            var responseString = await response.Content.ReadAsStringAsync();
-            SpotifyAuthResponse authResponse = JsonConvert.DeserializeObject<SpotifyAuthResponse>(responseString);
-
-            return authResponse.AccessToken;
-        }
-
-        private static async Task ConfigureSpotifyClient()
-        {
-            //TODO: Add check to see if we need a new token or not
-            // Request Spotify access token
-            string accessToken = await RequestSpotifyToken();
-
-            // Configure SpotifyAPI client
-            SpotifyClientConfig config = SpotifyClientConfig
-                .CreateDefault(accessToken)
-                .WithHTTPLogger(new SimpleConsoleHTTPLogger());
+            var config = SpotifyClientConfig
+                .CreateDefault()
+                .WithAuthenticator(new ClientCredentialsAuthenticator(appConfig["SpotifyClientID"], appConfig["SpotifyClientSecret"]));
 
             spotify = new SpotifyClient(config);
 
         }
-    
+        //TODO: Add check to see if we need a new token or not
         // Temp Method to keep tested functionality
         public async Task PrintArtistInfoAsync()
         {
@@ -85,7 +48,7 @@ namespace LineupAnalyzer.Spotify
             if(!authenticated)
             {
                
-                await ConfigureSpotifyClient();
+                await InitializeSpotifyClient();
 
                 authenticated = true;
 
@@ -115,5 +78,15 @@ namespace LineupAnalyzer.Spotify
             Console.WriteLine(artist.Genres[0]);
         }
     
+        public async Task<string> GetArtistID(string artistName)
+        {
+            string artistID = "Test";
+
+           // SimpleArtist artist = await spotify.Search();
+
+
+            return artistID;
+        }
+
     }
 }
