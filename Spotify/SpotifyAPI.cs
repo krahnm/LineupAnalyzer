@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Http;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LineupAnalyzer.Spotify
 {
@@ -40,53 +41,83 @@ namespace LineupAnalyzer.Spotify
             spotify = new SpotifyClient(config);
 
         }
-        //TODO: Add check to see if we need a new token or not
-        // Temp Method to keep tested functionality
-        public async Task PrintArtistInfoAsync()
+
+        /*
+         Function to return an artists spotifyID given their name
+         */
+        private async Task<string> GetArtistID(string artistName)
         {
-            //TODO: This is a fake authentication check. Implement something proper
-            if(!authenticated)
+            string artistID = null;
+ 
+            // Create search request
+            SearchRequest search = new SearchRequest(SearchRequest.Types.Artist,artistName);
+
+            // Search using the created request
+            SearchResponse searchResult = await spotify.Search.Item(search);
+
+            // Verify that the search returned a result
+            if (searchResult.Artists.Items.Count > 0)
             {
-               
-                await InitializeSpotifyClient();
-
-                authenticated = true;
-
+                artistID = searchResult.Artists.Items[0].Id;
+                Console.WriteLine($"Artist ID obtained");
             }
-
-            // Optional query/body parameter
-            FullTrack track = await spotify.Tracks.Get("1s6ux0lNiTziSrd7iUAADH", new TrackRequest
+            else
             {
-                Market = "DE"
-            });
-
-            FullArtist artist = await spotify.Artists.Get("4Z8W4fKeB5YxbusRsdQVPb");
-
-            //SearchClient search = await spotify.Search. .Search. .Humanize .Browse. .GetCategories() Search Get("Beyonce");
-
-            // Sometimes, query/body parameters are also required!
-            // var tracks = await spotify.Tracks.GetSeveral(new TracksRequest(new List<string> {
-            // "1s6ux0lNiTziSrd7iUAADH",
-            // "6YlOxoHWLjH6uVQvxUIUug"
-            // }));
-
-            // Print data of interest
-            Console.WriteLine(track.Name);
-            Console.WriteLine(artist.Name);
-            Console.WriteLine(artist.Followers.Total);
-            Console.WriteLine(artist.Popularity);
-            Console.WriteLine(artist.Genres[0]);
-        }
-    
-        public async Task<string> GetArtistID(string artistName)
-        {
-            string artistID = "Test";
-
-           // SimpleArtist artist = await spotify.Search();
-
+                Console.WriteLine($"Artist '{artistName}' could not be found.");
+            }
 
             return artistID;
         }
+        
+        /*
+         Function to return an artists profile given their name
+         */
+        public async Task<FullArtist> GetFullArtist(string artistName)
+        {
+            string artistID = await GetArtistID(artistName);
+
+            FullArtist artist = await spotify.Artists.Get(artistID);
+
+            return artist;
+        }
+
+        //TODO: Add check to see if we need a new token or not
+        // Temp Method to keep tested functionality
+        /* public async Task PrintArtistInfoAsync()
+         {
+             //TODO: This is a fake authentication check. Implement something proper
+             if(!authenticated)
+             {
+
+                 await InitializeSpotifyClient();
+
+                 authenticated = true;
+
+             }
+
+             // Optional query/body parameter
+             FullTrack track = await spotify.Tracks.Get("1s6ux0lNiTziSrd7iUAADH", new TrackRequest
+             {
+                 Market = "DE"
+             });
+
+             FullArtist artist = await spotify.Artists.Get("4Z8W4fKeB5YxbusRsdQVPb");
+
+             //SearchClient search = await spotify.Search. .Search. .Humanize .Browse. .GetCategories() Search Get("Beyonce");
+
+             // Sometimes, query/body parameters are also required!
+             // var tracks = await spotify.Tracks.GetSeveral(new TracksRequest(new List<string> {
+             // "1s6ux0lNiTziSrd7iUAADH",
+             // "6YlOxoHWLjH6uVQvxUIUug"
+             // }));
+
+             // Print data of interest
+             Console.WriteLine(track.Name);
+             Console.WriteLine(artist.Name);
+             Console.WriteLine(artist.Followers.Total);
+             Console.WriteLine(artist.Popularity);
+             Console.WriteLine(artist.Genres[0]);
+         }*/
 
     }
 }
