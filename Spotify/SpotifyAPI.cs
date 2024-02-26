@@ -8,26 +8,21 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LineupAnalyzer.Spotify
 {
-    class SpotifyAuthResponse
-    {
-        [JsonProperty("access_token")]
-        public string AccessToken { get; set; }
-        [JsonProperty("expires_in")]
-        public int ExpiresIn { get; set; }
-        [JsonProperty("token_type")]
-        public string TokenType { get; set; }
-    }
-
     public class SpotifyInfo
     {
         /*  Create only one HttpClient to share across project  */
-        private static readonly HttpClient client = new HttpClient();
+        //private static readonly HttpClient client = new HttpClient();
 
         private static SpotifyClient spotify;
 
-        private bool authenticated = false;
+        private static bool authenticated;
 
-        private static async Task InitializeSpotifyClient()
+        public SpotifyInfo() 
+        {
+            authenticated = false;
+        }
+
+        private static void InitializeSpotifyClient()
         {
             // Retrieve Spotify Secrets
             var appConfig = new ConfigurationBuilder()
@@ -39,6 +34,8 @@ namespace LineupAnalyzer.Spotify
                 .WithAuthenticator(new ClientCredentialsAuthenticator(appConfig["SpotifyClientID"], appConfig["SpotifyClientSecret"]));
 
             spotify = new SpotifyClient(config);
+
+            authenticated = true;
 
         }
 
@@ -74,6 +71,11 @@ namespace LineupAnalyzer.Spotify
          */
         public async Task<FullArtist> GetFullArtist(string artistName)
         {
+            if(!authenticated)
+            {
+                InitializeSpotifyClient();
+            }
+
             string artistID = await GetArtistID(artistName);
 
             FullArtist artist = await spotify.Artists.Get(artistID);
@@ -81,43 +83,25 @@ namespace LineupAnalyzer.Spotify
             return artist;
         }
 
-        //TODO: Add check to see if we need a new token or not
-        // Temp Method to keep tested functionality
-        /* public async Task PrintArtistInfoAsync()
-         {
-             //TODO: This is a fake authentication check. Implement something proper
-             if(!authenticated)
-             {
+        public async Task<List<FullArtist>> GetFullArtistList(List<string> artistList)
+        {
+            if (!authenticated)
+            {
+                InitializeSpotifyClient();
+            }
 
-                 await InitializeSpotifyClient();
+            List<FullArtist> lineup = new List<FullArtist> { };
+            FullArtist buffer = new FullArtist();
+            
+            for (int i = 0; i < artistList.Count; i++)
+            {
+                Console.WriteLine(artistList[i]);
+                buffer = await GetFullArtist(artistList[i]);
+                lineup.Add(buffer);
+            }
 
-                 authenticated = true;
-
-             }
-
-             // Optional query/body parameter
-             FullTrack track = await spotify.Tracks.Get("1s6ux0lNiTziSrd7iUAADH", new TrackRequest
-             {
-                 Market = "DE"
-             });
-
-             FullArtist artist = await spotify.Artists.Get("4Z8W4fKeB5YxbusRsdQVPb");
-
-             //SearchClient search = await spotify.Search. .Search. .Humanize .Browse. .GetCategories() Search Get("Beyonce");
-
-             // Sometimes, query/body parameters are also required!
-             // var tracks = await spotify.Tracks.GetSeveral(new TracksRequest(new List<string> {
-             // "1s6ux0lNiTziSrd7iUAADH",
-             // "6YlOxoHWLjH6uVQvxUIUug"
-             // }));
-
-             // Print data of interest
-             Console.WriteLine(track.Name);
-             Console.WriteLine(artist.Name);
-             Console.WriteLine(artist.Followers.Total);
-             Console.WriteLine(artist.Popularity);
-             Console.WriteLine(artist.Genres[0]);
-         }*/
+            return lineup;
+        }
 
     }
 }
