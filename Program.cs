@@ -31,7 +31,10 @@ class Program
     static async Task Main()
     {
         FestivalManager fManager = new FestivalManager();
-        await fManager.TestInsertFestival();
+        //await fManager.TestInsertFestival();
+
+        await fManager.TestSelectFestival();
+        
 
     }
 }
