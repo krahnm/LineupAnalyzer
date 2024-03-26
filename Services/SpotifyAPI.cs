@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Security;
+using LineupAnalyzer.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using SpotifyAPI.Web;
@@ -8,7 +9,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LineupAnalyzer.Services;
 
-public class SpotifyInfo
+internal class SpotifyInfo
 {
     /*  Create only one HttpClient to share across project  */
     //private static readonly HttpClient client = new HttpClient();
@@ -86,24 +87,37 @@ public class SpotifyInfo
     /*
      Get all the spotify information for all artists in a provided lineup
      */
-    public async Task<List<FullArtist>> GetFullArtistList(List<string> artistList)
+    public async Task<List<FullArtistPerformanceInfo>> GetFullArtistList(List<FullArtistPerformanceInfo> performanceList)
     {
         if (!authenticated)
         {
             InitializeSpotifyClient();
         }
 
-        List<FullArtist> lineup = new List<FullArtist> { };
         FullArtist buffer = new FullArtist();
 
-        for (int i = 0; i < artistList.Count; i++)
+        for (int i = 0; i < performanceList.Count; i++)
         {
-            Console.WriteLine(artistList[i]);
-            buffer = await GetFullArtist(artistList[i]);
-            lineup.Add(buffer);
+                        
+            buffer = await GetFullArtist(performanceList[i].Name);
+            Console.WriteLine("Get full Artist List: " + performanceList[i].Name);
+
+            performanceList[i].ExternalUrls = buffer.ExternalUrls;
+            performanceList[i].Followers = buffer.Followers;
+            performanceList[i].Genres = buffer.Genres;
+            performanceList[i].Href = buffer.Href;
+            performanceList[i].Id = buffer.Id;
+            performanceList[i].ArtistID = buffer.Id;
+            performanceList[i].Images = buffer.Images;
+            performanceList[i].Name = buffer.Name; //Minimize issues around accents and capitals by using the spotify name
+            performanceList[i].Popularity = buffer.Popularity;
+            performanceList[i].Type = buffer.Type;
+            performanceList[i].Uri = buffer.Uri;
         }
 
-        return lineup;
+        return performanceList;
     }
+
+
 
 }

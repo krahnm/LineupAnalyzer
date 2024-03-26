@@ -1,4 +1,5 @@
-﻿using SpotifyAPI.Web;
+﻿using LineupAnalyzer.Models;
+using SpotifyAPI.Web;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,20 +14,27 @@ internal class FileIO
     /*
      Read a CSV containing 2 columns, Artist and date performing
      */
-    public static List<string> ReadArtistListCSV(string filePath) 
+    public static List<FullArtistPerformanceInfo> ReadArtistListCSV(string filePath) 
     {
-        List<string> artistList = new List<string>();
+        List<FullArtistPerformanceInfo> artistPerformanceList = new List<FullArtistPerformanceInfo>();
         StreamReader reader = new StreamReader(filePath);
+        string line;
+        string[] values;
+
         while (!reader.EndOfStream)
         {
-            string line = reader.ReadLine();
-            string[] values = line.Split(',');
+            FullArtistPerformanceInfo performance = new FullArtistPerformanceInfo();
 
-            artistList.Add(values[0]);
-            //listB.Add(values[1]);
+            line = reader.ReadLine();
+            values = line.Split(',');
+
+            performance.Name = values[0];
+            performance.Date = DateTime.Parse(values[1]);
+
+            Console.WriteLine("Adding: " + performance.Name + " on " + performance.Date);
+            artistPerformanceList.Add(performance);
         }
 
-
-        return artistList;
+        return artistPerformanceList;
     }
 }

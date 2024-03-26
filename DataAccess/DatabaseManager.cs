@@ -21,7 +21,7 @@ internal class DatabaseManager
     private string email;
     private string password;
 
-    public DatabaseManager()//string url, string key)
+    public DatabaseManager()
     {
         // Retrieve Supabase Secrets
         IConfigurationRoot appConfig = new ConfigurationBuilder()
@@ -47,23 +47,73 @@ internal class DatabaseManager
     public async Task InitializeAsync()
     {
         await client.InitializeAsync();
-        Console.WriteLine("Supabase Client Initialized");
+        //Console.WriteLine("Supabase Client Initialized");
     }
 
     public async Task CreateUserSession()//string email, string password)
     {
         await client.Auth.SignIn(email, password);
-        Console.WriteLine("Supabase user sessiong created");
+        //Console.WriteLine("Supabase user sessiong created");
+    }
+
+    public bool ActiveSession()
+    {
+        if (client.Auth.CurrentSession == null)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }      
+        
+    }
+
+    public async Task InsertArtist(ArtistTable data)
+    {
+        Console.WriteLine(data.ArtistID);
+        try
+        {
+            await client.From<ArtistTable>().Insert(data);
+            Console.WriteLine("Artist [" + data.ArtistName + "] inserted");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        
+    }
+    public async Task InsertPerformance(FestivalPerformancesTable data)
+    {
+        try
+        {
+            await client.From<FestivalPerformancesTable>().Insert(data);
+            Console.WriteLine("Performance inserted");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        
     }
 
     public async Task InsertFestival(FestivalTable data)
     {
-        await client.From<FestivalTable>().Insert(data);
-        Console.WriteLine("Festival inserted");
+        try
+        {
+            await client.From<FestivalTable>().Insert(data);
+            Console.WriteLine("Festival inserted - " + data.FestivalID);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        
     }
 
-    public async Task<List<FestivalTable>> TestSelectFestival()
+    public async Task<List<FestivalTable>> GetFestivalsList()
     {
+        Console.WriteLine("Getting Festivals\n");
         Postgrest.Responses.ModeledResponse<FestivalTable> result;
         try
         {
@@ -83,6 +133,35 @@ internal class DatabaseManager
         return result.Models;
     }
 
-    
+    public async Task<FestivalTable> GetLastInsertedFestival()
+    {
+        Console.WriteLine("Getting Festival\n");
+        Postgrest.Responses.ModeledResponse<FestivalTable> result;
+        //FestivalTable result;
+        try
+        {
+            result = await client
+            .From<FestivalTable>()
+            .Select("*") //Select all columns
+            .Order("festival_id", Postgrest.Constants.Ordering.Descending)
+            .Limit(1)
+            .Get();
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            result = null;
+        }
+
+        Console.WriteLine(result.Model);
+        Console.WriteLine(result.Model.ToString());
+        Console.WriteLine(result.Model.FestivalName.ToString());
+
+
+        return result.Model;//.Models;
+    }
+
+
 }
 
