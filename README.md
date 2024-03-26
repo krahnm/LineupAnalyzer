@@ -1,5 +1,5 @@
 # Lineup Analyzer
-Lineup Analyzer is a project that explores the lineups of music festivals around the world. The goal is to explore how festivals book based on popularity and genre over time. Artist popularity and genres are obtained through the Spotify for Developers API.
+Lineup Analyzer is a project that explores the lineups of music festivals around the world. The goal is to explore how festivals book acts based on popularity and genre over time. Artist popularity and genres are obtained through the Spotify for Developers API.
 
 ## Getting Started
 
